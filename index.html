@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Galendereal Live Tracker</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:transparent}
+body{font-family:Inter,Arial,sans-serif;color:#fff}
+.widget{width:430px;padding:10px;display:grid;gap:8px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card{
+  min-height:82px;padding:13px 15px;border:1px solid rgba(255,255,255,.16);
+  background:rgba(8,9,12,.88);border-radius:12px;display:flex;
+  align-items:center;justify-content:space-between
+}
+.left{display:flex;align-items:center;gap:11px}
+.logo{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;
+  background:#15171c;font-weight:900;font-size:19px}
+.tk .logo{color:#ff2d55}.tw .logo{color:#9146ff}
+.platform{font-size:12px;font-weight:900;letter-spacing:.08em}
+.user{font-size:10px;color:#9298a4;margin-top:3px}
+.right{text-align:right}.viewers{font-size:25px;font-weight:950;line-height:1}
+.state{font-size:8px;font-weight:900;letter-spacing:.13em;color:#7e8490;margin-top:5px}
+.live .state{color:#55e39b}
+.total{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 15px;border:1px solid rgba(255,255,255,.16);
+  background:rgba(8,9,12,.88);border-radius:12px
+}
+.totalLabel{font-size:9px;color:#9298a4;letter-spacing:.16em;font-weight:800}
+.totalNum{font-size:28px;font-weight:950}
+@media(max-width:450px){.widget{width:100%}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="widget">
+  <div class="row">
+    <div id="tkCard" class="card tk">
+      <div class="left"><div class="logo">♪</div><div><div class="platform">TIKTOK</div><div class="user">@Galendereall</div></div></div>
+      <div class="right"><div id="tkViews" class="viewers">0</div><div id="tkState" class="state">OFFLINE</div></div>
+    </div>
+    <div id="twCard" class="card tw">
+      <div class="left"><div class="logo">◈</div><div><div class="platform">TWITCH</div><div class="user">Galendereal</div></div></div>
+      <div class="right"><div id="twViews" class="viewers">0</div><div id="twState" class="state">OFFLINE</div></div>
+    </div>
+  </div>
+  <div class="total"><div class="totalLabel">TOTAL VIEWERS</div><div id="total" class="totalNum">0</div></div>
+</div>
+
+<script>
+const API="/api/viewers";
+function $(id){return document.getElementById(id)}
+function fmt(n){return Number(n||0).toLocaleString("en-US")}
+function render(d){
+  const tk=d.tiktok||{}, tw=d.twitch||{};
+  const tkLive=!!tk.live, twLive=!!tw.live;
+  const tkv=tkLive?Number(tk.viewers||0):0;
+  const twv=twLive?Number(tw.viewers||0):0;
+  $("tkViews").textContent=fmt(tkv);
+  $("twViews").textContent=fmt(twv);
+  $("tkState").textContent=tkLive?"LIVE":"OFFLINE";
+  $("twState").textContent=twLive?"LIVE":"OFFLINE";
+  $("tkCard").classList.toggle("live",tkLive);
+  $("twCard").classList.toggle("live",twLive);
+  $("total").textContent=fmt(tkv+twv);
+}
+async function update(){
+  try{
+    const r=await fetch(API,{cache:"no-store"});
+    if(!r.ok)throw Error();
+    render(await r.json());
+  }catch{
+    render({tiktok:{live:false,viewers:0},twitch:{live:false,viewers:0}});
+  }
+}
+update();setInterval(update,5000);
+</script>
+</body>
+</html>
